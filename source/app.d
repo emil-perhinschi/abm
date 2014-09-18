@@ -74,7 +74,7 @@ int main()
 
     SDL_Event e;
     bool quit = false;
-    SDL_Delay(20);
+    SDL_Delay(50);
     while (!quit){
         while (SDL_PollEvent(&e)){
             if( e.type == SDL_QUIT ) {
@@ -199,7 +199,7 @@ Position get_mouse_clicks(SDL_Event e, Position mouse_target) {
 }
 
 Position follow_target(Position mob_position, Position mouse_target) {
-
+    int speed = 3;
     int move_x, move_y;
     if (mouse_target.x != 0 && mouse_target.y != 0) {
         if (mouse_target.x - mob_position.x > 0) {
@@ -214,8 +214,8 @@ Position follow_target(Position mob_position, Position mouse_target) {
             move_y = -1;
         }
 
-        mob_position.y += move_y;
-        mob_position.x  += move_x;
+        mob_position.y += move_y * speed;
+        mob_position.x  += move_x * speed;
     }
     return mob_position;
 }
