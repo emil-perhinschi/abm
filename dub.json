@@ -1,0 +1,10 @@
+{
+    "name": "abm",
+    "description": "A minimal D application.",
+    "copyright": "Copyright © 2014, emilper",
+    "authors": ["emilper"],
+    "dependencies": {
+        "derelict-sdl2": ">=1.2.6",
+        "derelict-gl3": ">=1.0.6"
+    }
+}
