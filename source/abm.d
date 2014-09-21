@@ -17,14 +17,19 @@ int main()
     int screen_height = 768;
     int tile_size = 40;
 
-    App app = new App(screen_width, screen_height, tile_size, "/home/emilper/mnt/little/work/abm/");
+    App app = new App(
+        screen_width,
+        screen_height,
+        tile_size,
+        "/home/emilper/mnt/little/work/abm/");
     app.set_background("source/background.png");
     app.set_destination("source/destination.png");
+    app.load_units(3);
 
-
-    while (!app.quit){
-        app.clear_scene();
+    while (!app.give_up_and_quit){
+        app.handle_events();
         app.move_units();
+        app.clear_scene();
         app.render_scene();
         app.draw_all();
     }

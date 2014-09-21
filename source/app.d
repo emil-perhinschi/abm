@@ -7,6 +7,7 @@ import derelict.sdl2.image;
 // import derelict.sdl2.net;
 
 import std.stdio;
+import std.random;
 
 import sdlutil;
 import destination;
@@ -18,7 +19,7 @@ class App {
     SDL_Window *window;
     SDL_Renderer *renderer;
 
-    bool quit = false;
+    bool give_up_and_quit = false;
 
     int height;
     int width;
@@ -32,11 +33,11 @@ class App {
     SDL_Texture *mouse_texture;
 
     Destination destination;
-    Unit[] units;
+    Unit[5] units;
 
     this(int width, int height, int tile_size, string base_path){
         this.width = width;
-        this.width = width;
+        this.height = height;
         this.background_tile_size = tile_size;
         this.base_path = base_path;
         this();
@@ -45,28 +46,27 @@ class App {
     this() {
         DerelictSDL2.load();
         DerelictSDL2Image.load();
-        bool init_failed = false;
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
             log_SDL_error("SDL_Init Error");
-            this.quit = true;
+            this.give_up_and_quit = true;
         }
 
         if ((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
             log_SDL_error("IMG_Init");
-            this.quit = true;
+            this.give_up_and_quit = true;
         }
 
         this.window = SDL_CreateWindow("Hello World!", 100, 100, this.width, this.height, SDL_WINDOW_SHOWN);
         if (this.window == null){
             log_SDL_error( "SDL_CreateWindow");
-            this.quit = true;
+            this.give_up_and_quit = true;
         }
 
         this.renderer = SDL_CreateRenderer(this.window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
         if (this.renderer == null ){
             log_SDL_error("SDL_CreateRenderer");
-            this.quit = true;
+            this.give_up_and_quit = true;
         }
     }
 
@@ -84,26 +84,63 @@ class App {
     }
 
     void set_background(string file_path) {
-        SDL_Texture *background = load_texture(this.base_path ~ file_path, this.renderer);
+        writeln(this.base_path ~ file_path);
+        SDL_Texture *background = load_texture(
+            this.base_path ~ file_path,
+            this.renderer
+        );
+        this.background = background;
         if (background == null ){
-            this.quit = true;
+            writeln("background is null");
+            this.give_up_and_quit = true;
         }
     }
 
     void set_destination(string file_path) {
         SDL_Texture *destination = load_texture(this.base_path ~ file_path, this.renderer);
         if (destination == null ){
-            this.quit = true;
+            this.give_up_and_quit = true;
         } else {
             this.destination = new Destination(destination);
+        }
+    }
+
+    void load_units(int how_many) {
+        SDL_Texture *texture = sdlutil.load_texture(
+            this.base_path ~ "source/mob.png",
+            this.renderer
+        );
+
+        for (int i = 0; i < how_many; i++) {
+            float x = uniform(5, this.width - 5);
+            float y = uniform(5, this.height - 5);
+            this.units[i] = new Unit(texture);
+            this.units[i].place_on_map(x,y);
+        }
+    }
+
+    void render_units() {
+        for (int i = 0; i < this.units.length; i++) {
+            if (this.units[i] !is null) {
+                render_texture(
+                    this.units[i].texture,
+                    this.renderer,
+                    this.units[i].x,
+                    this.units[i].y
+                );
+            }
         }
     }
 
     void move_units() {
         if (this.destination.active) {
             for (int i = 0; i < this.units.length; i++) {
-                this.units[i].x = move(this.units[i].x, this.destination.x, this.units[i].speed);
-                this.units[i].y = move(this.units[i].y, this.destination.y, this.units[i].speed);
+                if (this.units[i] !is null) {
+                    this.units[i].x = move(this.units[i].x, this.destination.x,
+                        this.units[i].speed);
+                    this.units[i].y = move(this.units[i].y, this.destination.y,
+                        this.units[i].speed);
+                }
             }
         }
     }
@@ -127,13 +164,11 @@ class App {
 
     void render_destination() {
         if (this.destination.active) {
-            render_texture(this.destination.texture, this.renderer, this.destination.x, this.destination.y);
-        }
-    }
-
-    void render_units() {
-        for (int i = 0; i < this.units.length; i++) {
-            render_texture(this.units[i].texture, this.renderer, this.units[i].x, this.units[i].y);
+            sdlutil.render_texture(
+                this.destination.texture,
+                this.renderer,
+                this.destination.x -5, this.destination.y - 5
+            );
         }
     }
 
@@ -142,7 +177,7 @@ class App {
         SDL_Delay(50);
         while (SDL_PollEvent(&e)){
             if( e.type == SDL_QUIT ) {
-                quit = true;
+                this.give_up_and_quit = true;
             } else if ( e.type == SDL_MOUSEBUTTONDOWN ) {
                 writeln("mouse is down");
                 int x, y;

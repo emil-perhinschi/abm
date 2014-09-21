@@ -14,7 +14,7 @@ class Unit {
     string name;
     string sprite_file;
     SDL_Texture *texture;
-    float speed;
+    float speed = 1;
 
     this(SDL_Texture *texture) {
         this.texture = texture;
@@ -22,6 +22,12 @@ class Unit {
 
     ~this() {
         destroy_texture(this.texture);
+    }
+
+    bool place_on_map(float x, float y) {
+        this.x = x;
+        this.y = y;
+        return true;
     }
 
     void move(Destination destination) {
