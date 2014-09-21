@@ -24,7 +24,7 @@ int main()
         "/home/emilper/mnt/little/work/abm/");
     app.set_background("source/background.png");
     app.set_destination("source/destination.png");
-    app.load_units(3);
+    app.load_units(7);
 
     while (!app.give_up_and_quit){
         app.handle_events();

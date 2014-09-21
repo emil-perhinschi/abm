@@ -8,6 +8,7 @@ import derelict.sdl2.image;
 
 import std.stdio;
 import std.random;
+import std.conv;
 
 import sdlutil;
 import destination;
@@ -29,11 +30,11 @@ class App {
     int app_speed; // how fast to render
 
     SDL_Texture *background;
-    SDL_Texture *destination_texture;
-    SDL_Texture *mouse_texture;
+//    SDL_Texture *destination_texture;
+//    SDL_Texture *mouse_texture;
 
     Destination destination;
-    Unit[5] units;
+    Unit[7] units;
 
     this(int width, int height, int tile_size, string base_path){
         this.width = width;
@@ -106,15 +107,20 @@ class App {
     }
 
     void load_units(int how_many) {
-        SDL_Texture *texture = sdlutil.load_texture(
+        SDL_Texture *live_texture = sdlutil.load_texture(
             this.base_path ~ "source/mob.png",
             this.renderer
         );
 
+        SDL_Texture *dead_texture = sdlutil.load_texture(
+            this.base_path ~ "source/mob_dead.png",
+            this.renderer
+        );
+
         for (int i = 0; i < how_many; i++) {
-            float x = uniform(5, this.width - 5);
+            float x = uniform(5, this.width  - 5);
             float y = uniform(5, this.height - 5);
-            this.units[i] = new Unit(texture);
+            this.units[i] = new Unit(live_texture, dead_texture);
             this.units[i].place_on_map(x,y);
         }
     }
@@ -122,24 +128,51 @@ class App {
     void render_units() {
         for (int i = 0; i < this.units.length; i++) {
             if (this.units[i] !is null) {
-                render_texture(
-                    this.units[i].texture,
-                    this.renderer,
-                    this.units[i].x,
-                    this.units[i].y
-                );
+                if (this.units[i].is_dead) {
+                    render_texture(
+                        this.units[i].dead_texture,
+                        this.renderer,
+                        this.units[i].x,
+                        this.units[i].y
+                    );
+                } else {
+                    render_texture(
+                        this.units[i].live_texture,
+                        this.renderer,
+                        this.units[i].x,
+                        this.units[i].y
+                    );
+                }
             }
         }
     }
 
     void move_units() {
+        writeln("moving units");
         if (this.destination.active) {
+            int[string] occupied_spots;
+
             for (int i = 0; i < this.units.length; i++) {
                 if (this.units[i] !is null) {
-                    this.units[i].x = move(this.units[i].x, this.destination.x,
-                        this.units[i].speed);
-                    this.units[i].y = move(this.units[i].y, this.destination.y,
-                        this.units[i].speed);
+                    if(this.units[i].is_dead == true) {
+                        string dead_unit_position = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+                        occupied_spots[dead_unit_position] = i;
+                        continue;
+                    }
+
+                    this.units[i].x = move(this.units[i].x, this.destination.x, this.units[i].speed);
+                    this.units[i].y = move(this.units[i].y, this.destination.y, this.units[i].speed);
+                    string test_key = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+
+                    if ( test_key in occupied_spots ) {
+                        if ( this.units[occupied_spots[test_key]].is_dead == false) {
+                            this.units[occupied_spots[test_key]].is_dead = true;
+                        }
+                        writeln( "units died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
+                        this.units[i].is_dead = true;
+                    } else {
+                        occupied_spots[test_key] = i;
+                    }
                 }
             }
         }
