@@ -11,6 +11,7 @@ class Unit {
 
     float x;
     float y;
+    float radius = 5; // how large is the unit assuming it is a circle
     string name;
     string sprite_file;
     SDL_Texture *live_texture;
@@ -34,11 +35,11 @@ class Unit {
         return true;
     }
 
-    void move(Destination destination) {
+    void move(Destination destination, Mover move) {
         if (destination.active) {
             // TODO send movement.move as a callback to allow different strategies
-            this.x = movement.move(this.x, destination.x, this.speed);
-            this.y = movement.move(this.y, destination.y, this.speed);
+            this.x = move(this.x, destination.x, this.speed);
+            this.y = move(this.y, destination.y, this.speed);
         }
     }
 }

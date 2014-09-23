@@ -1,12 +1,15 @@
 module movement;
 
 import std.stdio;
+import std.math;
+import std.conv;
 
 struct Position {
     float x;
     float y;
 }
 
+alias Mover = float function(float, float, float);
 
 pure float move(float unit_position, float destination_position, float speed) {
     float direction = compute_direction(destination_position, unit_position);
@@ -35,6 +38,20 @@ pure float compute_speed(float distance, float base_speed) {
         speed = 0;
     }
     return speed;
+}
+
+bool check_for_colision_radius(float x1, float y1, float radius1, float x2, float y2, float radius2) {
+
+    float distance = sqrt( (x1 - x2)^^2 + (y1 - y2)^^2);
+    float in_between = distance - radius1 - radius2;
+    bool is_colision = false;
+    // writeln(" in between is " ~ to!string(in_between));
+    if (in_between > 0 ) {
+        is_colision = false;
+    } else {
+        is_colision = true;
+    }
+    return is_colision;
 }
 
 /*

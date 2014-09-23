@@ -28,7 +28,9 @@ int main()
 
     while (!app.give_up_and_quit){
         app.handle_events();
-        app.move_units();
+        if (app.units_all_dead != true) {
+            app.move_units();
+        }
         app.clear_scene();
         app.render_scene();
         app.draw_all();

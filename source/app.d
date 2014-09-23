@@ -3,12 +3,13 @@ module app;
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
 // import derelict.sdl2.mixer;
-// import derelict.sdl2.ttf;
+import derelict.sdl2.ttf;
 // import derelict.sdl2.net;
 
 import std.stdio;
 import std.random;
 import std.conv;
+import std.string;
 
 import sdlutil;
 import destination;
@@ -19,9 +20,14 @@ class App {
 
     SDL_Window *window;
     SDL_Renderer *renderer;
+    SDL_Color score_color = { 0, 255, 0 };
+    float score;
+    TTF_Font *score_font;
 
+    uint time;
+    int clicks;
     bool give_up_and_quit = false;
-
+    bool units_all_dead;
     int height;
     int width;
     int background_tile_size;
@@ -47,6 +53,8 @@ class App {
     this() {
         DerelictSDL2.load();
         DerelictSDL2Image.load();
+        DerelictSDL2ttf.load();
+        TTF_Init();
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
             log_SDL_error("SDL_Init Error");
@@ -77,7 +85,7 @@ class App {
         for (int i = 0; i < this.units.length; i++) {
             this.units[i].destroy();
         }
-
+        TTF_CloseFont(score_font);
         SDL_DestroyTexture(this.background);
         SDL_DestroyWindow(this.window);
         IMG_Quit();
@@ -149,33 +157,78 @@ class App {
 
     void move_units() {
         writeln("moving units");
+        int dead_units = 0;
         if (this.destination.active) {
-            int[string] occupied_spots;
-
+            colision_check_center_distance();
             for (int i = 0; i < this.units.length; i++) {
-                if (this.units[i] !is null) {
-                    if(this.units[i].is_dead == true) {
-                        string dead_unit_position = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
-                        occupied_spots[dead_unit_position] = i;
-                        continue;
-                    }
+                if (this.units[i].is_dead == true) {
+                    dead_units++;
+                    continue;
+                }
+                this.units[i].move(this.destination, &movement.move);
+            }
+        }
+        this.score = dead_units;
+        if (dead_units == this.units.length) {
+            this.units_all_dead = true;
+        }
+    }
 
-                    this.units[i].x = move(this.units[i].x, this.destination.x, this.units[i].speed);
-                    this.units[i].y = move(this.units[i].y, this.destination.y, this.units[i].speed);
-                    string test_key = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+    void colision_check_center_coordinates() {
+        int[string] occupied_spots;
 
-                    if ( test_key in occupied_spots ) {
-                        if ( this.units[occupied_spots[test_key]].is_dead == false) {
-                            this.units[occupied_spots[test_key]].is_dead = true;
-                        }
-                        writeln( "units died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
-                        this.units[i].is_dead = true;
-                    } else {
-                        occupied_spots[test_key] = i;
+        for (int i = 0; i < this.units.length; i++) {
+
+            if (this.units[i] !is null) {
+                if(this.units[i].is_dead == true) {
+                    string dead_unit_position = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+                    occupied_spots[dead_unit_position] = i;
+                    continue;
+                }
+
+                this.units[i].move(this.destination, &movement.move);
+
+                string test_key = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+
+                if ( test_key in occupied_spots ) {
+                    if ( this.units[occupied_spots[test_key]].is_dead == false) {
+                        this.units[occupied_spots[test_key]].is_dead = true;
                     }
+                    writeln( "units died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
+                    this.units[i].is_dead = true;
+                } else {
+                    occupied_spots[test_key] = i;
+                }
+            }
+
+        }
+    }
+
+    void colision_check_center_distance() {
+        for (int i = 0; i < this.units.length; i++) {
+            Unit unit1 = this.units[i];
+            if (unit1.is_dead == true) {
+                continue;
+            }
+            for (int j = 0; j < this.units.length; j++) {
+                if (i == j) {
+                    continue;
+                }
+
+                Unit unit2 = this.units[j];
+                float in_between = movement.check_for_colision_radius(unit1.x, unit1.y, unit1.radius, unit2.x, unit2.y, unit2.radius);
+                if ( in_between == true ) {
+                    unit1.is_dead = true;
+                    unit2.is_dead = true;
+                    writeln("!!!!!!!!!!!!!!!! colision " ~ to!string(in_between));
                 }
             }
         }
+
+
+        // compute the distance between all the units
+        // if distance smaller than a threshold, set the two units as dead
+        // needs a new property in Unit: size
     }
 
     void clear_scene() {
@@ -186,6 +239,25 @@ class App {
         this.render_background();
         this.render_destination();
         this.render_units();
+        this.render_score();
+    }
+
+    void render_score() {
+        this.score_font = TTF_OpenFont("/usr/share/fonts/truetype/msttcorefonts/arial.ttf", 25);
+        string score_text = "Score: " ~ to!string(this.score);
+        SDL_Surface* score_surface = TTF_RenderText_Solid( this.score_font, std.string.toStringz(score_text), score_color );
+
+        if ( score_surface == null ) {
+            writeln( "Unable to render text surface! SDL_ttf Error: " ~ to!string(TTF_GetError()) );
+        } else {
+            SDL_Texture* score_texture = SDL_CreateTextureFromSurface( this.renderer, score_surface );
+            if( score_texture == null ) {
+                log_SDL_error( "Unable to create texture from rendered text! SDL Error: ");
+            } else {
+                SDL_FreeSurface( score_surface );
+                render_texture(score_texture, this.renderer, 3, 3);
+            }
+        }
     }
 
     void render_background() {
