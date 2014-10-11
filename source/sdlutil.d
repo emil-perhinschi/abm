@@ -2,8 +2,18 @@ module sdlutil;
 
 import derelict.sdl2.sdl;
 import derelict.sdl2.image;
+import derelict.sdl2.ttf;
 
 import std.file;
+import std.stdio;
+
+TTF_Font* load_font(string font_file_path, int font_size) {
+    writeln(font_file_path);
+    if(!exists(font_file_path) ) {
+        throw new Exception("font path not found " ~ font_file_path);
+    }
+    return TTF_OpenFont(std.string.toStringz(font_file_path), 25);
+}
 
 SDL_Texture* load_texture(string file_path, SDL_Renderer *ren) {
     if (!exists(file_path)) {

@@ -1,23 +1,21 @@
 module destination;
 
-import derelict.sdl2.sdl;
-import derelict.sdl2.image;
-
 import sdlutil;
+import resources;
 
 class Destination {
-    SDL_Texture *texture;
+
     bool active = false;
     float x;
     float y;
     int size;
 
-    this(SDL_Texture *texture) {
-        this.texture = texture;
+    this() {
     }
 
-    void get_mouse_clicks(SDL_Event e) {
-
+    this(float x, float y) {
+        this.x = x;
+        this.y = y;
     }
 
     void set_position(float x , int y) {
@@ -28,6 +26,5 @@ class Destination {
     }
 
     ~this() {
-        destroy_texture(this.texture);
     }
 }

@@ -9,6 +9,7 @@ import destination;
 
 class Unit {
 
+    string type;
     float x;
     float y;
     float radius = 5; // how large is the unit assuming it is a circle
@@ -19,7 +20,8 @@ class Unit {
     float speed = 1;
     bool is_dead = false;
 
-    this(SDL_Texture *live_texture, SDL_Texture *dead_texture) {
+    this(string type, SDL_Texture *live_texture, SDL_Texture *dead_texture) {
+        this.type = type;
         this.live_texture = live_texture;
         this.dead_texture = dead_texture;
     }

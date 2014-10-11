@@ -22,10 +22,9 @@ int main()
         screen_height,
         tile_size,
         "/home/emilper/work/abm/");
-    app.set_background("resource/background.png");
-    app.set_destination("resource/destination.png");
+    app.load_prey();
     app.load_units(7);
-
+    writeln("after units");
     while (!app.give_up_and_quit){
         app.handle_events();
         if (app.units_all_dead != true) {
