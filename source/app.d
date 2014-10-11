@@ -21,11 +21,13 @@ class App {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Color score_color = { 0, 255, 0 };
-    float score;
+    float score = 0.0;
+    int clicks_count = 0;
+
     TTF_Font *score_font;
 
     uint time;
-    int clicks;
+
     bool give_up_and_quit = false;
     bool units_all_dead;
     int height;
@@ -36,8 +38,6 @@ class App {
     int app_speed; // how fast to render
 
     SDL_Texture *background;
-//    SDL_Texture *destination_texture;
-//    SDL_Texture *mouse_texture;
 
     Destination destination;
     Unit[7] units;
@@ -54,7 +54,6 @@ class App {
         DerelictSDL2.load();
         DerelictSDL2Image.load();
         DerelictSDL2ttf.load();
-        TTF_Init();
 
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0){
             log_SDL_error("SDL_Init Error");
@@ -77,6 +76,10 @@ class App {
             log_SDL_error("SDL_CreateRenderer");
             this.give_up_and_quit = true;
         }
+
+        TTF_Init();
+
+        this.score_font = TTF_OpenFont("source/times.ttf", 25);
     }
 
     ~this() {
@@ -85,7 +88,8 @@ class App {
         for (int i = 0; i < this.units.length; i++) {
             this.units[i].destroy();
         }
-        TTF_CloseFont(score_font);
+        TTF_CloseFont(this.score_font);
+        TTF_Quit();
         SDL_DestroyTexture(this.background);
         SDL_DestroyWindow(this.window);
         IMG_Quit();
@@ -156,7 +160,7 @@ class App {
     }
 
     void move_units() {
-        writeln("moving units");
+        // writeln("moving units");
         int dead_units = 0;
         if (this.destination.active) {
             colision_check_center_distance();
@@ -168,7 +172,11 @@ class App {
                 this.units[i].move(this.destination, &movement.move);
             }
         }
-        this.score = dead_units;
+        if (this.clicks_count > 0) {
+            this.score = dead_units/this.clicks_count;
+        } else {
+            this.score = dead_units;
+        }
         if (dead_units == this.units.length) {
             this.units_all_dead = true;
         }
@@ -216,11 +224,11 @@ class App {
                 }
 
                 Unit unit2 = this.units[j];
-                float in_between = movement.check_for_colision_radius(unit1.x, unit1.y, unit1.radius, unit2.x, unit2.y, unit2.radius);
-                if ( in_between == true ) {
+                bool colided = movement.check_for_colision_radius(unit1.x, unit1.y, unit1.radius, unit2.x, unit2.y, unit2.radius);
+                if ( colided == true ) {
                     unit1.is_dead = true;
                     unit2.is_dead = true;
-                    writeln("!!!!!!!!!!!!!!!! colision " ~ to!string(in_between));
+                    writeln("!!!!!!!!!!!!!!!! colision " ~ to!string(colided));
                 }
             }
         }
@@ -243,8 +251,7 @@ class App {
     }
 
     void render_score() {
-        this.score_font = TTF_OpenFont("/usr/share/fonts/truetype/msttcorefonts/arial.ttf", 25);
-        string score_text = "Score: " ~ to!string(this.score);
+        string score_text = format("Score: %.2f", this.score );
         SDL_Surface* score_surface = TTF_RenderText_Solid( this.score_font, std.string.toStringz(score_text), score_color );
 
         if ( score_surface == null ) {
@@ -289,6 +296,7 @@ class App {
                 if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
                     this.destination.active = true;
                     this.destination.set_position(x,y);
+                    this.clicks_count++;
                 }
             }
         }
