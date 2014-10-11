@@ -17,6 +17,7 @@ import unit;
 
 import movement;
 import resources;
+import std.stdio;
 
 class App {
 
@@ -28,7 +29,7 @@ class App {
     Resources resources = new Resources();
 
     uint time;
-
+    bool game_over = false;
     bool give_up_and_quit = false;
     bool units_all_dead;
     int height;
@@ -65,7 +66,7 @@ class App {
             this.give_up_and_quit = true;
         }
 
-        this.window = SDL_CreateWindow("Hello World!", 100, 100, this.width, this.height, SDL_WINDOW_SHOWN);
+        this.window = SDL_CreateWindow("Hello World!", 100, 100, this.width, this.height, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
         if (this.window == null){
             log_SDL_error( "SDL_CreateWindow");
             this.give_up_and_quit = true;
@@ -125,10 +126,14 @@ class App {
 
     void load_prey() {
         this.units[0] = new Unit("prey", this.resources.prey, this.resources.dead);
+        this.place_prey();
+    }
+
+    void place_prey() {
         float x = uniform(5, this.width  - 5);
         float y = uniform(5, this.height - 5);
         this.units[0].place_on_map(x,y);
-        writeln("loaded prey at ", x, " " , y);
+        debug writeln("loaded prey at ", x, " " , y);
     }
 
     void render_units() {
@@ -177,13 +182,10 @@ class App {
             }
         }
 
-        if (this.clicks_count > 0) {
-            this.score = dead_units/this.clicks_count;
-        } else {
-            this.score = dead_units;
-        }
-        if (dead_units == this.units.length) {
-            this.units_all_dead = true;
+        this.score = dead_units;
+        // units.length - 1 : all hunters are dead or the prey is dead and one hunter alive
+        if ( (dead_units == this.units.length - 1 ) ||  (this.units[0].is_dead) ) {
+            this.game_over = true;
         }
     }
 
@@ -207,7 +209,7 @@ class App {
                     if ( this.units[occupied_spots[test_key]].is_dead == false) {
                         this.units[occupied_spots[test_key]].is_dead = true;
                     }
-                    writeln( "units died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
+                    debug writeln( "units died " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
                     this.units[i].is_dead = true;
                 } else {
                     occupied_spots[test_key] = i;
@@ -228,13 +230,12 @@ class App {
                 if (i == j) {
                     continue;
                 }
-                writeln(i, " " , j);
                 Unit unit2 = this.units[j];
                 bool colided = movement.check_for_colision_radius(unit1.x, unit1.y, unit1.radius, unit2.x, unit2.y, unit2.radius);
                 if ( colided == true ) {
                     unit1.is_dead = true;
                     unit2.is_dead = true;
-                    writeln("!!!!!!!!!!!!!!!! colision " ~ to!string(colided));
+                    debug writeln("!!!!!!!!!!!!!!!! colision " ~ to!string(colided));
                 }
             }
         }
@@ -250,6 +251,11 @@ class App {
     }
 
     void render_scene() {
+        int x,y;
+        SDL_GetWindowSize(this.window, &x,&y);
+        this.width = x;
+        this.height = y;
+
         this.render_background();
         this.render_destination();
         this.render_units();
@@ -269,6 +275,26 @@ class App {
             } else {
                 SDL_FreeSurface( score_surface );
                 render_texture(score_texture, this.renderer, 3, 3);
+            }
+        }
+    }
+
+    void render_game_over() {
+        string game_over_text = format("GAME OVER Score: %.2f", this.score );
+        SDL_Surface* text_surface = TTF_RenderText_Solid( this.resources.score_font, std.string.toStringz(game_over_text), score_color );
+
+        if ( text_surface == null ) {
+            writeln( "Unable to render text surface! SDL_ttf Error: " ~ to!string(TTF_GetError()) );
+        } else {
+            SDL_Texture* text_texture = SDL_CreateTextureFromSurface( this.renderer, text_surface );
+            if( text_texture == null ) {
+                log_SDL_error( "Unable to create texture from rendered text! SDL Error: ");
+            } else {
+                SDL_FreeSurface( text_surface );
+                int x = cast(int)(this.width/2);
+                int y = cast(int)(this.height/2);
+                writeln("rendering at ", x, " " , y);
+                render_texture(text_texture, this.renderer, 50, 50);
             }
         }
     }
@@ -303,6 +329,8 @@ class App {
                     this.destination.active = true;
                     this.destination.set_position(x,y);
                     this.clicks_count++;
+                } else if (SDL_BUTTON(SDL_BUTTON_RIGHT) ) {
+                    this.place_prey();
                 }
             }
         }

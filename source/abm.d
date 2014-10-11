@@ -27,11 +27,14 @@ int main()
     writeln("after units");
     while (!app.give_up_and_quit){
         app.handle_events();
-        if (app.units_all_dead != true) {
+        if ( app.game_over != true) {
             app.move_units();
+            app.clear_scene();
+            app.render_scene();
+        } else {
+            app.render_game_over();
+            writeln("rendered game over");
         }
-        app.clear_scene();
-        app.render_scene();
         app.draw_all();
     }
 
@@ -40,41 +43,3 @@ int main()
     return 0;
 }
 
-void cleanup(SDL_Texture* tex) {
-    SDL_DestroyTexture(tex);
-}
-
-void cleanup(SDL_Surface* surface) {
-    SDL_FreeSurface(surface);
-}
-
-void cleanup(SDL_Renderer* ren) {
-    SDL_DestroyRenderer(ren);
-}
-
-struct Position {
-    float x;
-    float y;
-}
-
-//    SDL_Texture *image = load_texture("/home/emilper/mnt/little/work/abm/source/mob.png", ren);
-//    SDL_Texture *destination = load_texture("/home/emilper/mnt/little/work/abm/source/destination.png", ren);
-
-/*
-    int iW, iH;
-    SDL_QueryTexture(image, null, null, &iW, &iH);
-    int mx = screen_width / 2 - iW / 2;
-    int my = screen_height / 2 - iH / 2;
-    float speed = 3;
-
-    Position mob_position = Position(mx, my );
-    Position mouse_destination = Position(0,0);
-*/
-
-/*
-writeln(
-      "destination x:" ~ to!string(mouse_destination.x) ~ " y:" ~ to!string(mouse_destination.y)
-    ~ " position x:" ~ to!string(mob_position.x) ~ " y:" ~ to!string(mob_position.y)
-    ~ " distance x:" ~ to!string(distance_x) ~ " y:" ~ to!string(distance_y)
-    ~ " speed x:" ~ to!string(speed_x) ~ " y:" ~ to!string(speed_y));
-*/

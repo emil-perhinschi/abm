@@ -29,8 +29,8 @@ SDL_Texture* load_texture(string file_path, SDL_Renderer *ren) {
 
 void render_background(SDL_Texture* background, SDL_Renderer* ren, int screen_width, int screen_height, int tile_size) {
     //Determine how many tiles we'll need to fill the screen
-    int xTiles = screen_width / tile_size;
-    int yTiles = screen_height / tile_size;
+    int xTiles = (screen_width / tile_size) + 1;
+    int yTiles = ( screen_height / tile_size) + 1;
 
     //Draw the tiles by calculating their positions
     for (int i = 0; i < xTiles * yTiles; ++i){
