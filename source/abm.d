@@ -21,9 +21,9 @@ int main()
         screen_width,
         screen_height,
         tile_size,
-        "/home/emilper/mnt/little/work/abm/");
-    app.set_background("source/background.png");
-    app.set_destination("source/destination.png");
+        "/home/emilper/work/abm/");
+    app.set_background("resource/background.png");
+    app.set_destination("resource/destination.png");
     app.load_units(7);
 
     while (!app.give_up_and_quit){

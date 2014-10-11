@@ -24,12 +24,12 @@ class App {
     float score = 0.0;
     int clicks_count = 0;
 
-    TTF_Font *score_font;
+
 
     uint time;
 
     bool give_up_and_quit = false;
-    bool units_all_dead;
+    bool hunters_all_dead;
     int height;
     int width;
     int background_tile_size;
@@ -40,7 +40,8 @@ class App {
     SDL_Texture *background;
 
     Destination destination;
-    Unit[7] units;
+    Hunter[7] hunters;
+    Prey prey;
 
     this(int width, int height, int tile_size, string base_path){
         this.width = width;
@@ -79,14 +80,14 @@ class App {
 
         TTF_Init();
 
-        this.score_font = TTF_OpenFont("source/times.ttf", 25);
+        this.score_font = TTF_OpenFont("resource/times.ttf", 25);
     }
 
     ~this() {
         this.destination.destroy();
 
-        for (int i = 0; i < this.units.length; i++) {
-            this.units[i].destroy();
+        for (int i = 0; i < this.hunters.length; i++) {
+            this.hunters[i].destroy();
         }
         TTF_CloseFont(this.score_font);
         TTF_Quit();
@@ -118,92 +119,93 @@ class App {
         }
     }
 
-    void load_units(int how_many) {
+    void load_hunters(int how_many) {
         SDL_Texture *live_texture = sdlutil.load_texture(
-            this.base_path ~ "source/mob.png",
+            this.base_path ~ "resource/mob.png",
             this.renderer
         );
 
         SDL_Texture *dead_texture = sdlutil.load_texture(
-            this.base_path ~ "source/mob_dead.png",
+            this.base_path ~ "resource/mob_dead.png",
             this.renderer
         );
 
         for (int i = 0; i < how_many; i++) {
             float x = uniform(5, this.width  - 5);
             float y = uniform(5, this.height - 5);
-            this.units[i] = new Unit(live_texture, dead_texture);
-            this.units[i].place_on_map(x,y);
+            this.hunters[i] = new Unit(live_texture, dead_texture);
+            this.hunters[i].place_on_map(x,y);
         }
     }
 
-    void render_units() {
-        for (int i = 0; i < this.units.length; i++) {
-            if (this.units[i] !is null) {
-                if (this.units[i].is_dead) {
+
+    void render_hunters() {
+        for (int i = 0; i < this.hunters.length; i++) {
+            if (this.hunters[i] !is null) {
+                if (this.hunters[i].is_dead) {
                     render_texture(
-                        this.units[i].dead_texture,
+                        this.hunters[i].dead_texture,
                         this.renderer,
-                        this.units[i].x,
-                        this.units[i].y
+                        this.hunters[i].x,
+                        this.hunters[i].y
                     );
                 } else {
                     render_texture(
-                        this.units[i].live_texture,
+                        this.hunters[i].live_texture,
                         this.renderer,
-                        this.units[i].x,
-                        this.units[i].y
+                        this.hunters[i].x,
+                        this.hunters[i].y
                     );
                 }
             }
         }
     }
 
-    void move_units() {
-        // writeln("moving units");
-        int dead_units = 0;
+    void move_hunters() {
+        // writeln("moving hunters");
+        int dead_hunters = 0;
         if (this.destination.active) {
             colision_check_center_distance();
-            for (int i = 0; i < this.units.length; i++) {
-                if (this.units[i].is_dead == true) {
-                    dead_units++;
+            for (int i = 0; i < this.hunters.length; i++) {
+                if (this.hunters[i].is_dead == true) {
+                    dead_hunters++;
                     continue;
                 }
-                this.units[i].move(this.destination, &movement.move);
+                this.hunters[i].move(this.destination, &movement.move);
             }
         }
         if (this.clicks_count > 0) {
-            this.score = dead_units/this.clicks_count;
+            this.score = dead_hunters/this.clicks_count;
         } else {
-            this.score = dead_units;
+            this.score = dead_hunters;
         }
-        if (dead_units == this.units.length) {
-            this.units_all_dead = true;
+        if (dead_hunters == this.hunters.length) {
+            this.hunters_all_dead = true;
         }
     }
 
     void colision_check_center_coordinates() {
         int[string] occupied_spots;
 
-        for (int i = 0; i < this.units.length; i++) {
+        for (int i = 0; i < this.hunters.length; i++) {
 
-            if (this.units[i] !is null) {
-                if(this.units[i].is_dead == true) {
-                    string dead_unit_position = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+            if (this.hunters[i] !is null) {
+                if(this.hunters[i].is_dead == true) {
+                    string dead_unit_position = to!string(this.hunters[i].x) ~ " " ~ to!string(this.hunters[i].y);
                     occupied_spots[dead_unit_position] = i;
                     continue;
                 }
 
-                this.units[i].move(this.destination, &movement.move);
+                this.hunters[i].move(this.destination, &movement.move);
 
-                string test_key = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
+                string test_key = to!string(this.hunters[i].x) ~ " " ~ to!string(this.hunters[i].y);
 
                 if ( test_key in occupied_spots ) {
-                    if ( this.units[occupied_spots[test_key]].is_dead == false) {
-                        this.units[occupied_spots[test_key]].is_dead = true;
+                    if ( this.hunters[occupied_spots[test_key]].is_dead == false) {
+                        this.hunters[occupied_spots[test_key]].is_dead = true;
                     }
-                    writeln( "units died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
-                    this.units[i].is_dead = true;
+                    writeln( "hunters died !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! " ~ to!string(occupied_spots[test_key]) ~ " and " ~ to!string(i) );
+                    this.hunters[i].is_dead = true;
                 } else {
                     occupied_spots[test_key] = i;
                 }
@@ -213,17 +215,17 @@ class App {
     }
 
     void colision_check_center_distance() {
-        for (int i = 0; i < this.units.length; i++) {
-            Unit unit1 = this.units[i];
+        for (int i = 0; i < this.hunters.length; i++) {
+            Unit unit1 = this.hunters[i];
             if (unit1.is_dead == true) {
                 continue;
             }
-            for (int j = 0; j < this.units.length; j++) {
+            for (int j = 0; j < this.hunters.length; j++) {
                 if (i == j) {
                     continue;
                 }
 
-                Unit unit2 = this.units[j];
+                Unit unit2 = this.hunters[j];
                 bool colided = movement.check_for_colision_radius(unit1.x, unit1.y, unit1.radius, unit2.x, unit2.y, unit2.radius);
                 if ( colided == true ) {
                     unit1.is_dead = true;
@@ -234,8 +236,8 @@ class App {
         }
 
 
-        // compute the distance between all the units
-        // if distance smaller than a threshold, set the two units as dead
+        // compute the distance between all the hunters
+        // if distance smaller than a threshold, set the two hunters as dead
         // needs a new property in Unit: size
     }
 
@@ -246,7 +248,7 @@ class App {
     void render_scene() {
         this.render_background();
         this.render_destination();
-        this.render_units();
+        this.render_hunters();
         this.render_score();
     }
 
