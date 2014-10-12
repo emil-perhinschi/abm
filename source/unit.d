@@ -13,8 +13,7 @@ class Unit {
     float x;
     float y;
     float radius = 5; // how large is the unit assuming it is a circle
-    string name;
-    string sprite_file;
+
     SDL_Texture *live_texture;
     SDL_Texture *dead_texture;
     float speed = 1;

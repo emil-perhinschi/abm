@@ -31,13 +31,16 @@ class App {
     uint time;
     bool game_over = false;
     bool give_up_and_quit = false;
-    bool units_all_dead;
+    bool units_all_dead = false;
+    bool paused = false;
     int height;
     int width;
     int background_tile_size;
 
     string base_path; // where to look for resources
-    int app_speed; // how fast to render
+    int app_speed = 50; // how fast to render
+    int app_speed_fast = 50;
+    int app_speed_slow = 200;
 
     Destination destination;
     Unit[8] units;
@@ -284,6 +287,10 @@ class App {
         writeln("after units");
         while (!this.give_up_and_quit){
             this.handle_events();
+            if (this.paused == true) {
+                this.app_speed = 200;
+                continue;
+            }
             if ( this.game_over != true) {
                 this.move_units();
                 this.clear_scene();
@@ -339,7 +346,7 @@ class App {
 
     void handle_events() {
         SDL_Event e;
-        SDL_Delay(50);
+        SDL_Delay(this.app_speed);
         while (SDL_PollEvent(&e)){
             if( e.type == SDL_QUIT ) {
                 this.give_up_and_quit = true;
@@ -350,13 +357,34 @@ class App {
                     this.destination.active = true;
                     this.destination.set_position(x,y);
                     this.clicks_count++;
-                } else if (SDL_BUTTON(SDL_BUTTON_RIGHT) ) {
-                    this.place_prey();
+                } else if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_RIGHT) ) {
+                    // no teleporting if the app is paused
+                    if(this.paused == false) this.place_prey();
+                } else if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_MIDDLE) ) {
+                    this.toggle_paused_state();
+                    writeln("middle button pressed");
+                } else {
+                    writeln("other mouse event");
+                }
+            } else if ( e.type == SDL_MOUSEWHEEL ) {
+                if (e.wheel.y < 0 ) {
+                    writeln("mouse wheel down ", e.wheel.y);
+                } else {
+                    writeln("mouse wheel up ", e.wheel.y);
                 }
             }
         }
     }
 
+    void toggle_paused_state() {
+        if ( this.paused == true )  {
+            this.app_speed = this.app_speed_fast;
+            this.paused = false;
+        } else {
+            this.app_speed = this.app_speed_slow;
+            this.paused = true;
+        }
+    }
     void draw_all() {
         SDL_RenderPresent(this.renderer);
     }
