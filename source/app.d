@@ -23,7 +23,7 @@ class App {
 
     SDL_Window *window;
     SDL_Renderer *renderer;
-    SDL_Color score_color = { 0, 255, 0 };
+    SDL_Color score_color = { 0, 0, 0 };
     float score = 0.0;
     int clicks_count = 0;
     Resources resources = new Resources();
@@ -259,7 +259,6 @@ class App {
         this.render_background();
         this.render_destination();
         this.render_units();
-        this.render_score();
     }
 
     void render_score() {
@@ -279,6 +278,28 @@ class App {
         }
     }
 
+    void run( int how_many_hunters ) {
+        this.load_prey();
+        this.load_units(how_many_hunters);
+        writeln("after units");
+        while (!this.give_up_and_quit){
+            this.handle_events();
+            if ( this.game_over != true) {
+                this.move_units();
+                this.clear_scene();
+                this.render_scene();
+                this.render_score();
+                this.draw_all();
+            } else {
+                this.clear_scene();
+                this.render_scene();
+                this.render_game_over();
+                this.draw_all();
+                writeln("rendered game over");
+            }
+        }
+    }
+
     void render_game_over() {
         string game_over_text = format("GAME OVER Score: %.2f", this.score );
         SDL_Surface* text_surface = TTF_RenderText_Solid( this.resources.score_font, std.string.toStringz(game_over_text), score_color );
@@ -291,10 +312,10 @@ class App {
                 log_SDL_error( "Unable to create texture from rendered text! SDL Error: ");
             } else {
                 SDL_FreeSurface( text_surface );
-                int x = cast(int)(this.width/2);
-                int y = cast(int)(this.height/2);
+                int x = this.width/2 - 30;
+                int y = this.height/2 - 30;
                 writeln("rendering at ", x, " " , y);
-                render_texture(text_texture, this.renderer, 50, 50);
+                render_texture(text_texture, this.renderer, cast(int)x, cast(int)y);
             }
         }
     }
