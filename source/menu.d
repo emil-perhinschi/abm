@@ -13,6 +13,8 @@ class Widget {
 
     int width;
     int height;
+    SDL_Texture* active;
+    SDL_Texture* inactive;
 
     this() {
     }
