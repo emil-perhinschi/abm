@@ -38,9 +38,16 @@ class Unit {
 
     void move(Destination destination, Mover move) {
         if (destination.active) {
-            // TODO send movement.move as a callback to allow different strategies
-            this.x = move(this.x, destination.x, this.speed);
-            this.y = move(this.y, destination.y, this.speed);
+			std.stdio.writeln(this.x, " ", this.y);
+			float old_x = this.x;
+			float old_y = this.y;	
+            Position new_position = move_one_unit(this.speed, this.x, this.y, destination.x, destination.y);
+            this.x = new_position.x;
+            this.y = new_position.y;
+			
+			// TODO send movement.move as a callback to allow different strategies
+            // this.x = move(this.x, destination.x, this.speed);
+            // this.y = move(this.y, destination.y, this.speed);
         }
     }
 }

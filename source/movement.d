@@ -60,7 +60,7 @@ pure float compute_movement_angle(float x1, float x2, float y1, float y2) {
 	return atan2( y2 - y1,  x2 - x1 );
 }
 
-pure Position move_one_unit(float speed, float x1, float x2, float y1, float y2) {
+pure Position move_one_unit(float speed, float x1, float y1, float x2, float y2) {
 	// angle is in radians
 	float angle = compute_movement_angle(x1, x2, y1, y2);
 
