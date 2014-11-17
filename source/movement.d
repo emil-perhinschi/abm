@@ -40,7 +40,7 @@ pure float compute_speed(float distance, float base_speed) {
     return speed;
 }
 
-bool check_for_colision_radius(float x1, float y1, float radius1, float x2, float y2, float radius2) {
+pure bool check_for_colision_radius(float x1, float y1, float radius1, float x2, float y2, float radius2) {
 
     float distance = sqrt( (x1 - x2)^^2 + (y1 - y2)^^2);
     float in_between = distance - radius1 - radius2;
@@ -53,6 +53,33 @@ bool check_for_colision_radius(float x1, float y1, float radius1, float x2, floa
     }
     return is_colision;
 }
+
+
+// returns radians
+pure float compute_movement_angle(float x1, float x2, float y1, float y2) {
+	return atan2( y2 - y1,  x2 - x1 );
+}
+
+pure Position move_one_unit(float speed, float x1, float x2, float y1, float y2) {
+	// angle is in radians
+	float angle = compute_movement_angle(x1, x2, y1, y2);
+
+	float diff_x = std.math.sin(angle) * speed;
+	float diff_y = std.math.cos(angle) * speed;
+	Position new_position = { x : x1 + diff_x, y: y1 + diff_y };
+	return new_position;
+}
+
+// http://www.cplusplus.com/forum/beginner/90710/
+pure float degrees_to_radians(float degrees) {
+	return (degrees * std.math.PI) / 180.0;
+}
+
+// http://www.cplusplus.com/forum/beginner/90710/
+pure float radians_to_degrees(float radians) {
+	return (180 * radians) / std.math.PI;
+}
+
 
 /*
  * this module should have no clue about sdl, this has to be done some other way
