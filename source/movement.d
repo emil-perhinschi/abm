@@ -63,10 +63,11 @@ pure float compute_movement_angle(float x1, float x2, float y1, float y2) {
 pure Position move_one_unit(float speed, float x1, float y1, float x2, float y2) {
 	// angle is in radians
 	float angle = compute_movement_angle(x1, x2, y1, y2);
-
+	debug writeln(x1, " ", x2, " ", y1, " ", y2, " angle in radians is ", angle, " angle in degrees is " , radians_to_degrees(angle) );
 	float diff_x = std.math.sin(angle) * speed;
 	float diff_y = std.math.cos(angle) * speed;
 	Position new_position = { x : x1 + diff_x, y: y1 + diff_y };
+	debug writeln("new position : ", new_position);
 	return new_position;
 }
 

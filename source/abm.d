@@ -11,6 +11,7 @@ import unit;
 import sdlutil;
 import movement;
 
+/*
 int main()
 {
     int screen_width = 1024;
@@ -30,4 +31,10 @@ int main()
     app.destroy();
     return 0;
 }
+*/
 
+int main() {
+	
+	move_one_unit(1,0,0,-1,1);
+	return(0);
+}
