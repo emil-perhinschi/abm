@@ -9,7 +9,7 @@ struct Position {
     float y;
 }
 
-alias Mover = float function(float, float, float);
+alias Mover = Position function(float, float, float, float, float);
 
 pure float move(float unit_position, float destination_position, float speed) {
     float direction = compute_direction(destination_position, unit_position);
@@ -56,18 +56,21 @@ pure bool check_for_colision_radius(float x1, float y1, float radius1, float x2,
 
 
 // returns radians
-pure float compute_movement_angle(float x1, float x2, float y1, float y2) {
-	return atan2( y2 - y1,  x2 - x1 );
+pure float compute_movement_angle(float x1, float y1, float x2, float y2) {
+	return  atan2( y2 - y1,  x2 - x1 );
 }
 
 pure Position move_one_unit(float speed, float x1, float y1, float x2, float y2) {
 	// angle is in radians
-	float angle = compute_movement_angle(x1, x2, y1, y2);
-	debug writeln(x1, " ", x2, " ", y1, " ", y2, " angle in radians is ", angle, " angle in degrees is " , radians_to_degrees(angle) );
+	float angle = compute_movement_angle(x1, y1, x2, y2);
+	
 	float diff_x = std.math.sin(angle) * speed;
 	float diff_y = std.math.cos(angle) * speed;
-	Position new_position = { x : x1 + diff_x, y: y1 + diff_y };
-	debug writeln("new position : ", new_position);
+	float new_x = x1 + diff_x;
+	float new_y = y1 + diff_y;
+	Position new_position = { x : new_x, y: new_y};
+	
+	debug writeln("speed is ", speed, " ", x1, " ", y1, " ", x2, " ", y2, " diff_x ", diff_x, " diff_y ", diff_y, " angle in radians is ", angle, " angle in degrees is " , radians_to_degrees(angle) , " new position : ", new_position);
 	return new_position;
 }
 

@@ -14,11 +14,12 @@ class Unit {
     float y;
     float radius = 5; // how large is the unit assuming it is a circle
 
-    SDL_Texture *live_texture;
-    SDL_Texture *dead_texture;
     float speed = 1;
     bool is_dead = false;
 
+    SDL_Texture *live_texture;
+    SDL_Texture *dead_texture;
+    
     this(string type, SDL_Texture *live_texture, SDL_Texture *dead_texture) {
         this.type = type;
         this.live_texture = live_texture;
@@ -36,18 +37,17 @@ class Unit {
         return true;
     }
 
-    void move(Destination destination, Mover move) {
+    void move(Destination destination, Mover mover) {
         if (destination.active) {
-			std.stdio.writeln(this.x, " ", this.y);
-			float old_x = this.x;
-			float old_y = this.y;	
-            Position new_position = move_one_unit(this.speed, this.x, this.y, destination.x, destination.y);
+			// std.stdio.writeln(this.x, " ", this.y);	
+            Position new_position = mover(this.speed, this.x, -1 * this.y, destination.x, -1 * destination.y);
+            // debug std.stdio.writeln(new_position);
             this.x = new_position.x;
-            this.y = new_position.y;
-			
+            this.y = -1 * new_position.y;
+			// debug std.stdio.writeln(this);
 			// TODO send movement.move as a callback to allow different strategies
-            // this.x = move(this.x, destination.x, this.speed);
-            // this.y = move(this.y, destination.y, this.speed);
+            // this.x = movement.move(this.x, destination.x, this.speed);
+            // this.y = movement.move(this.y, destination.y, this.speed);
         }
     }
 }

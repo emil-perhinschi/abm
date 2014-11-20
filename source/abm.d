@@ -11,13 +11,13 @@ import unit;
 import sdlutil;
 import movement;
 
-/*
+
 int main()
 {
-    int screen_width = 1024;
-    int screen_height = 768;
+    int screen_width = 800;
+    int screen_height = 800;
     int tile_size = 40;
-    int how_many_hunters = 7;
+    int how_many_hunters = 1;
 
     App app = new App(
         screen_width,
@@ -31,10 +31,5 @@ int main()
     app.destroy();
     return 0;
 }
-*/
 
-int main() {
-	
-	move_one_unit(1,0,0,-1,1);
-	return(0);
-}
+

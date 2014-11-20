@@ -8,5 +8,26 @@
         "derelict-gl3": ">=1.0.6"
     },
     "buildRequirements" : ["allowWarnings"],
-    "buildOptions": ["debugMode", "debugInfoC", "alwaysStackFrame", "warnings", "deprecationWarnings"]
+    "buildOptions": ["debugMode", "debugInfoC", "alwaysStackFrame", "warnings", "deprecationWarnings"],
+    "targetType": "none",
+	"subPackages": [
+		{
+			"name": "game",
+			"targetType": "executable",
+			"excludedSourceFiles": ["source/test_movement.d"],
+			"dependencies": {
+				"derelict-sdl2": ">=1.2.6",
+				"derelict-gl3": ">=1.0.6"
+			},
+		},
+		{
+			"name": "test",
+			"targetType": "executable",
+			"excludedSourceFiles": ["source/abm.d"],
+			"dependencies": {
+				"derelict-sdl2": ">=1.2.6",
+				"derelict-gl3": ">=1.0.6"
+			},
+		}
+	]
 }

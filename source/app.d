@@ -38,12 +38,13 @@ class App {
     int background_tile_size;
 
     string base_path; // where to look for resources
-    int app_speed = 50; // how fast to render
-    int app_speed_fast = 50;
+    int app_speed = 200; // how fast to render
+    int app_speed_fast = 200;
     int app_speed_slow = 200;
+	
 
     Destination destination;
-    Unit[8] units;
+    Unit[] units;
 
     this(int width, int height, int tile_size, string base_path){
         this.width = width;
@@ -122,13 +123,13 @@ class App {
         for (int i = 1; i < how_many + 1; i++) {
             float x = uniform(5, this.width  - 5);
             float y = uniform(5, this.height - 5);
-            this.units[i] = new Unit("hunter", this.resources.live, this.resources.dead);
+            this.units ~= new Unit("hunter", this.resources.live, this.resources.dead);
             this.units[i].place_on_map(x,y);
         }
     }
 
     void load_prey() {
-        this.units[0] = new Unit("prey", this.resources.prey, this.resources.dead);
+        this.units ~= new Unit("prey", this.resources.prey, this.resources.dead);
         this.place_prey();
     }
 
@@ -170,19 +171,20 @@ class App {
             if (this.units[0].is_dead) {
                 dead_units++;
             } else {
-                this.units[0].move(this.destination, &movement.move);
+                this.units[0].move(this.destination, &movement.move_one_unit);
             }
 
-            Destination prey = new Destination(this.units[0].x, this.units[0].y);
-            if (!this.units[0].is_dead) prey.active = true;
+            //Destination prey = new Destination(this.units[0].x, this.units[0].y);
+			//debug writeln("target is at ", this.destination.x, " " , this.destination.y, " prey is at " , prey.x, " ", prey.y);
+            //if (!this.units[0].is_dead) prey.active = true;
 
-            for (int i = 1; i < this.units.length; i++) {
-                if (this.units[i].is_dead == true) {
-                    dead_units++;
-                    continue;
-                }
-                this.units[i].move(prey, &movement.move);
-            }
+            //for (int i = 1; i < this.units.length; i++) {
+                //if (this.units[i].is_dead == true) {
+                    //dead_units++;
+                    //continue;
+                //}
+                //this.units[i].move(prey, &movement.move_one_unit);
+            //}
         }
 
         this.score = dead_units;
@@ -204,7 +206,7 @@ class App {
                     continue;
                 }
 
-                this.units[i].move(this.destination, &movement.move);
+                this.units[i].move(this.destination, &movement.move_one_unit);
 
                 string test_key = to!string(this.units[i].x) ~ " " ~ to!string(this.units[i].y);
 
@@ -288,9 +290,12 @@ class App {
         while (!this.give_up_and_quit){
             this.handle_events();
             if (this.paused == true) {
-                this.app_speed = 200;
+                this.app_speed = this.app_speed_slow;
                 continue;
-            }
+            } else {
+				this.app_speed = this.app_speed_fast;
+			}
+			
             if ( this.game_over != true) {
                 this.move_units();
                 this.clear_scene();
@@ -321,7 +326,7 @@ class App {
                 SDL_FreeSurface( text_surface );
                 int x = this.width/2 - 30;
                 int y = this.height/2 - 30;
-                writeln("rendering at ", x, " " , y);
+                // debug writeln("rendering at ", x, " " , y);
                 render_texture(text_texture, this.renderer, cast(int)x, cast(int)y);
             }
         }
@@ -351,9 +356,10 @@ class App {
             if( e.type == SDL_QUIT ) {
                 this.give_up_and_quit = true;
             } else if ( e.type == SDL_MOUSEBUTTONDOWN ) {
-                writeln("mouse is down");
+                debug writeln("mouse is down");
                 int x, y;
                 if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+					debug writeln("x is ", x, " y is ", y);
                     this.destination.active = true;
                     this.destination.set_position(x,y);
                     this.clicks_count++;
@@ -362,15 +368,15 @@ class App {
                     if(this.paused == false) this.place_prey();
                 } else if (SDL_GetMouseState(&x, &y) & SDL_BUTTON(SDL_BUTTON_MIDDLE) ) {
                     this.toggle_paused_state();
-                    writeln("middle button pressed");
+                    debug writeln("middle button pressed");
                 } else {
-                    writeln("other mouse event");
+                    debug writeln("other mouse event");
                 }
             } else if ( e.type == SDL_MOUSEWHEEL ) {
                 if (e.wheel.y < 0 ) {
-                    writeln("mouse wheel down ", e.wheel.y);
+                    debug writeln("mouse wheel down ", e.wheel.y);
                 } else {
-                    writeln("mouse wheel up ", e.wheel.y);
+                    debug writeln("mouse wheel up ", e.wheel.y);
                 }
             }
         }
