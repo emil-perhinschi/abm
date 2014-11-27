@@ -14,6 +14,7 @@ import movement;
 
 int main()
 {
+	int world_size = 1000;
     int screen_width = 800;
     int screen_height = 800;
     int tile_size = 40;
@@ -23,6 +24,7 @@ int main()
         screen_width,
         screen_height,
         tile_size,
+        world_size,
         "/home/emilper/work/abm/");
 
     app.run(how_many_hunters);

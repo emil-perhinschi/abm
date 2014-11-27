@@ -46,7 +46,7 @@ class App {
     Destination destination;
     Unit[] units;
 
-    this(int width, int height, int tile_size, string base_path){
+    this(int width, int height, int tile_size, int world_size, string base_path){
         this.width = width;
         this.height = height;
         this.background_tile_size = tile_size;
